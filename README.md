@@ -1,5 +1,7 @@
 # peaceiris/actions-gh-pages
 
+GitHub Actions for GitHub Pages 🚀 Deploy static files and publish your site easily. Static-Site-Generators-friendly.
+
 Hardened by [Chainguard](https://www.chainguard.dev) from the upstream action at [https://github.com/peaceiris/actions-gh-pages](https://github.com/peaceiris/actions-gh-pages).
 
 ## Versions
