@@ -1,6 +1,12 @@
 # peaceiris/actions-gh-pages
 
-Hardened GitHub Action by [Chainguard](https://www.chainguard.dev).
+Hardened by [Chainguard](https://www.chainguard.dev) from the upstream action at [https://github.com/peaceiris/actions-gh-pages](https://github.com/peaceiris/actions-gh-pages).
+
+## Versions
+
+| Version | Tag | Upstream commit |
+|---------|-----|-----------------|
+| v4.0.0 | [`v4.0.0`](https://github.com/chainguard-actions/actions-gh-pages/tree/v4.0.0) | — |
 
 ## Privacy
 
