@@ -1,4 +1,6 @@
 {
-  "upstream": "peaceiris/actions-gh-pages",
-  "version": "v4.0.0"
+  "owner": "peaceiris",
+  "repo": "actions-gh-pages",
+  "version": "",
+  "url": "https://github.com/peaceiris/actions-gh-pages"
 }
