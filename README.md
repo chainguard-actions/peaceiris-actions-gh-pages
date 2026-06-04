@@ -9,6 +9,7 @@ Hardened by [Chainguard](https://www.chainguard.dev) from the upstream action at
 | Version | Tag | Upstream commit |
 |---------|-----|-----------------|
 | v4.0.0 | [`v4.0.0`](https://github.com/chainguard-actions/peaceiris-actions-gh-pages/tree/v4.0.0) | — |
+| v4.1.0 | [`v4.1.0`](https://github.com/chainguard-actions/peaceiris-actions-gh-pages/tree/v4.1.0) | [`84c30a8`](https://github.com/peaceiris/actions-gh-pages/commit/84c30a85c19949d7eee79c4ff27748b70285e453) |
 
 ## Privacy
 
