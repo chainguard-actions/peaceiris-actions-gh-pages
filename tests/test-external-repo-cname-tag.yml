@@ -1,4 +1,4 @@
-name: Test deploy_key input
+name: Test external_repository, cname, tag_name, and tag_message inputs
 on:
   workflow_dispatch:
 jobs:
@@ -15,10 +15,14 @@ jobs:
         uses: .
         continue-on-error: true
         with:
-          deploy_key: "fake-deploy-key-for-input-coverage"
+          github_token: ${{ github.token }}
           publish_dir: public
-          publish_branch: gh-pages-deploy-key-test
+          publish_branch: gh-pages-ext-test
+          external_repository: "octocat/hello-world"
+          cname: "example.com"
+          tag_name: "v1.0.0-test"
+          tag_message: "Test tag message"
       - name: Assert action ran (inputs accepted)
         run: |
           echo "Action completed (may have failed to push, which is expected in test env)"
-          echo "PASS: deploy_key input was accepted"
+          echo "PASS: external_repository, cname, tag_name, and tag_message inputs were accepted"
