@@ -1,0 +1,13 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "local>peaceiris/renovate-config"
+  ],
+  "packageRules": [
+    {
+      "automerge": false,
+      "matchUpdateTypes": ["minor", "patch"],
+      "automergeStrategy": "squash"
+    }
+  ]
+}

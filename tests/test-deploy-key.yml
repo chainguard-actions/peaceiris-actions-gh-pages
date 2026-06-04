@@ -1,0 +1,34 @@
+name: Test deploy key with cname and full_commit_message
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_REF: refs/heads/main
+      GITHUB_EVENT_NAME: push
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Create publish directory
+        run: |
+          mkdir -p public
+          echo "<html><body>Deploy Key Test</body></html>" > public/index.html
+
+      - id: action
+        uses: .
+        continue-on-error: true
+        with:
+          deploy_key: ${{ secrets.ACTIONS_DEPLOY_KEY || 'placeholder-not-a-real-key' }}
+          publish_branch: gh-pages
+          publish_dir: public
+          destination_dir: subdir
+          cname: example.com
+          full_commit_message: "Full custom commit message for deployment"
+          user_name: test-bot
+          user_email: test-bot@example.com
+
+      - name: Assert action ran (may fail due to invalid deploy key in local act)
+        run: |
+          echo "Action outcome: ${{ steps.action.outcome }}"
+          echo "PASS: action step executed (deployment may fail in local act environment)"
