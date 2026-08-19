@@ -1,0 +1,185 @@
+name: 'Test'
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - '*.md'
+  pull_request:
+    paths-ignore:
+      - '*.md'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    strategy:
+      matrix:
+        os:
+          - 'ubuntu-22.04'
+          - 'ubuntu-24.04'
+          - 'ubuntu-latest'
+          - 'macos-latest'
+          - 'windows-latest'
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version-file: ".nvmrc"
+          cache: 'npm'
+
+      - name: Dump version
+        run: |
+          node -v
+          npm --version
+          git --version
+
+      - run: npm ci --ignore-scripts
+
+      - name: npm audit
+        if: startsWith(matrix.os, 'ubuntu-24.04')
+        run: |
+          npm audit > ./audit.log || true
+          if ! [ "$(cat ./audit.log | wc -l)" = 1 ]; then
+            echo "::warning::$(cat ./audit.log)"
+          fi
+          rm ./audit.log
+
+      - name: Run prettier
+        if: startsWith(matrix.os, 'ubuntu-24.04')
+        run: npm run format:check
+
+      - name: Run eslint
+        if: startsWith(matrix.os, 'ubuntu-24.04')
+        run: npm run lint
+
+      - run: npm test
+
+      - name: Upload test coverage as artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: coverage-${{ matrix.os }}
+          path: coverage
+
+      - uses: codecov/codecov-action@b9fd7d16f6d7d1b5d2bec1a2887e65ceed900238 # v4.6.0
+
+      - name: Run build
+        run: npm run build
+
+      - name: Remove lint-staged husky
+        if: ${{ github.ref == 'refs/heads/main' }}
+        run: |
+          npm uninstall lint-staged husky
+          git checkout package-lock.json package.json
+
+      - name: Setup mdBook
+        if: ${{ github.ref == 'refs/heads/main' }}
+        uses: peaceiris/actions-mdbook@ee69d230fe19748b7abf22df32acaa93833fad08 # v2.0.0
+        with:
+          mdbook-version: '0.4.5'
+
+      - name: Build site
+        if: ${{ github.ref == 'refs/heads/main' }}
+        working-directory: ./test_projects/mdbook
+        run: mdbook build
+
+      - name: Deploy
+        if: |
+          startsWith(matrix.os, 'ubuntu-latest') &&
+          github.ref == 'refs/heads/main' && github.event.repository.fork == false
+        uses: ./
+        with:
+          # deploy_key: ${{ secrets.ACTIONS_DEPLOY_KEY }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          # publish_branch: gh-pages
+          publish_dir: ./test_projects/mdbook/book
+          # external_repository: ''
+          allow_empty_commit: true
+          # keep_files: true
+          # force_orphan: true
+          user_name: 'github-actions[bot]'
+          user_email: 'github-actions[bot]@users.noreply.github.com'
+          # commit_message: ${{ github.event.head_commit.message }}
+          cname: 'actions-gh-pages.peaceiris.com'
+
+      - name: Deploy
+        if: |
+          startsWith(matrix.os, 'macos') &&
+          github.ref == 'refs/heads/main' && github.event.repository.fork == false
+        uses: ./
+        with:
+          deploy_key: ${{ secrets.ACTIONS_DEPLOY_KEY }}
+          # github_token: ${{ secrets.GITHUB_TOKEN }}
+          # personal_token: ${{ secrets.PERSONAL_TOKEN }}
+          publish_branch: gh-pages-macos
+          publish_dir: ./test_projects/mdbook/book
+          # external_repository: ''
+          allow_empty_commit: true
+          # keep_files: true
+          # force_orphan: true
+          user_name: 'github-actions[bot]'
+          user_email: 'github-actions[bot]@users.noreply.github.com'
+          # commit_message: ${{ github.event.head_commit.message }}
+
+      - name: Deploy
+        if: |
+          startsWith(matrix.os, 'windows') &&
+          github.ref == 'refs/heads/main' && github.event.repository.fork == false
+        uses: ./
+        with:
+          # deploy_key: ${{ secrets.ACTIONS_DEPLOY_KEY }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          # personal_token: ${{ secrets.PERSONAL_TOKEN }}
+          publish_branch: gh-pages-windows
+          publish_dir: ./test_projects/mdbook/book
+          # external_repository: ''
+          allow_empty_commit: true
+          # keep_files: true
+          # force_orphan: true
+          user_name: 'github-actions[bot]'
+          user_email: 'github-actions[bot]@users.noreply.github.com'
+          # commit_message: ${{ github.event.head_commit.message }}
+
+      - name: Deploy
+        if: |
+          startsWith(matrix.os, 'ubuntu-20.04') &&
+          github.ref == 'refs/heads/main' && github.event.repository.fork == false
+        uses: ./
+        with:
+          # deploy_key: ${{ secrets.ACTIONS_DEPLOY_KEY }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages-ubuntu-20.04
+          publish_dir: ./test_projects/mdbook/book
+          # external_repository: ''
+          allow_empty_commit: true
+          # keep_files: true
+          # force_orphan: true
+          user_name: 'github-actions[bot]'
+          user_email: 'github-actions[bot]@users.noreply.github.com'
+          # commit_message: ${{ github.event.head_commit.message }}
+
+      - name: Deploy
+        if: |
+          startsWith(matrix.os, 'ubuntu-22.04') &&
+          github.ref == 'refs/heads/main' && github.event.repository.fork == false
+        uses: ./
+        with:
+          # deploy_key: ${{ secrets.ACTIONS_DEPLOY_KEY }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages-ubuntu-22.04
+          publish_dir: ./test_projects/mdbook/book
+          # external_repository: ''
+          allow_empty_commit: true
+          # keep_files: true
+          # force_orphan: true
+          user_name: 'github-actions[bot]'
+          user_email: 'github-actions[bot]@users.noreply.github.com'
+          # commit_message: ${{ github.event.head_commit.message }}

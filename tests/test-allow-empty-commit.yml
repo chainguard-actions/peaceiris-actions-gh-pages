@@ -1,0 +1,56 @@
+name: Test allow empty commit
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Create publish directory with content
+        run: |
+          mkdir -p public
+          echo "<html><body>Allow empty commit test</body></html>" > public/index.html
+
+      - name: Install fake git to mock push
+        run: |
+          mkdir -p /tmp/fake-bin
+          printf '%s\n' '#!/bin/sh' \
+            'case "$1" in' \
+            '  push)' \
+            '    echo "[FAKE GIT] git push intercepted: $*"' \
+            '    exit 0' \
+            '    ;;' \
+            '  *)' \
+            '    exec /usr/bin/git "$@"' \
+            '    ;;' \
+            'esac' > /tmp/fake-bin/git
+          chmod +x /tmp/fake-bin/git
+          echo "/tmp/fake-bin" >> $GITHUB_PATH
+
+      - name: First deploy to establish baseline
+        uses: .
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: public
+          publish_branch: gh-pages-test-empty
+          force_orphan: 'true'
+          user_name: 'github-actions[bot]'
+          user_email: 'github-actions[bot]@users.noreply.github.com'
+
+      - id: deploy
+        name: Second deploy with same content and allow_empty_commit
+        uses: .
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: public
+          publish_branch: gh-pages-test-empty
+          allow_empty_commit: 'true'
+          user_name: 'github-actions[bot]'
+          user_email: 'github-actions[bot]@users.noreply.github.com'
+          commit_message: 'Empty commit test'
+
+      - name: Assert allow_empty_commit deploy succeeded
+        run: |
+          echo "Deploy with allow_empty_commit completed successfully"
+          echo "PASS"

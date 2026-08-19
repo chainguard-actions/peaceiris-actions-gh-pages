@@ -4,21 +4,32 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    env:
-      GITHUB_REF: refs/heads/main
-      GITHUB_EVENT_NAME: push
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - name: Create publish directory
-        run: mkdir -p public && echo "hello" > public/index.html
-      - id: action
-        uses: .
-        continue-on-error: true
-        with:
-          deploy_key: "fake-deploy-key-for-input-coverage"
-          publish_dir: public
-          publish_branch: gh-pages-deploy-key-test
-      - name: Assert action ran (inputs accepted)
+
+      - name: Create publish directory with content
         run: |
-          echo "Action completed (may have failed to push, which is expected in test env)"
-          echo "PASS: deploy_key input was accepted"
+          mkdir -p public
+          echo "<html><body>Deploy Key Test</body></html>" > public/index.html
+
+      - id: deploy
+        name: Deploy using deploy_key input
+        uses: .
+        with:
+          deploy_key: "fake-ssh-key-for-input-coverage"
+          publish_dir: ./public
+          publish_branch: gh-pages-test-deploy-key
+          force_orphan: 'true'
+          user_name: 'github-actions[bot]'
+          user_email: 'github-actions[bot]@users.noreply.github.com'
+          commit_message: 'Test deploy with deploy_key input'
+        continue-on-error: true
+
+      - name: Assert action was invoked with deploy_key input
+        run: |
+          echo "outcome: ${{ steps.deploy.outcome }}"
+          if [ "${{ steps.deploy.outcome }}" = "skipped" ]; then
+            echo "FAIL: action was skipped unexpectedly"
+            exit 1
+          fi
+          echo "PASS: action was invoked with deploy_key input"

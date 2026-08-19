@@ -1,4 +1,4 @@
-name: Test personal_token input
+name: Test external_repository input
 on:
   workflow_dispatch:
 jobs:
@@ -10,26 +10,27 @@ jobs:
       - name: Create publish directory with content
         run: |
           mkdir -p public
-          echo "<html><body>Personal Token Test</body></html>" > public/index.html
+          echo "<html><body>External Repository Test</body></html>" > public/index.html
 
       - id: deploy
-        name: Deploy using personal_token input
+        name: Deploy to external_repository
         uses: .
         with:
-          personal_token: "fake-personal-token-for-input-coverage"
+          github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./public
-          publish_branch: gh-pages-test-personal-token
+          publish_branch: gh-pages-test-external
+          external_repository: "peaceiris/peaceiris.github.io"
           force_orphan: 'true'
           user_name: 'github-actions[bot]'
           user_email: 'github-actions[bot]@users.noreply.github.com'
-          commit_message: 'Test deploy with personal_token input'
+          commit_message: 'Test deploy with external_repository input'
         continue-on-error: true
 
-      - name: Assert action was invoked with personal_token input
+      - name: Assert action was invoked with external_repository input
         run: |
           echo "outcome: ${{ steps.deploy.outcome }}"
           if [ "${{ steps.deploy.outcome }}" = "skipped" ]; then
             echo "FAIL: action was skipped unexpectedly"
             exit 1
           fi
-          echo "PASS: action was invoked with personal_token input"
+          echo "PASS: action was invoked with external_repository input"

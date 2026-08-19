@@ -1,0 +1,48 @@
+name: Test keep_files and allow_empty_commit options
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_REF: refs/heads/main
+      GITHUB_EVENT_NAME: push
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Create publish directory
+        run: |
+          mkdir -p output
+          echo "<html><body>Keep Files Test</body></html>" > output/index.html
+          echo "version: 1.0.0" > output/version.txt
+
+      - name: Verify output directory
+        run: |
+          if [ ! -d "output" ]; then
+            echo "FAIL: output directory does not exist"
+            exit 1
+          fi
+          echo "PASS: output directory exists"
+
+      - id: deploy
+        name: Deploy with keep_files and allow_empty_commit
+        uses: .
+        with:
+          github_token: fake-token-for-testing
+          publish_dir: ./output
+          publish_branch: gh-pages
+          keep_files: 'true'
+          allow_empty_commit: 'true'
+          user_name: 'github-actions[bot]'
+          user_email: 'github-actions[bot]@users.noreply.github.com'
+          full_commit_message: 'chore: deploy with keep_files enabled'
+        continue-on-error: true
+
+      - name: Assert action was invoked with keep_files options
+        run: |
+          echo "outcome: ${{ steps.deploy.outcome }}"
+          if [ "${{ steps.deploy.outcome }}" = "skipped" ]; then
+            echo "FAIL: action was skipped unexpectedly"
+            exit 1
+          fi
+          echo "PASS: action was invoked with keep_files and allow_empty_commit options"

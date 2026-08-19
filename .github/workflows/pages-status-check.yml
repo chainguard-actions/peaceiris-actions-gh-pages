@@ -1,0 +1,20 @@
+name: Check Pages Status
+
+on: page_build
+
+jobs:
+  pages-status-check:
+    runs-on: ubuntu-slim
+    timeout-minutes: 5
+    permissions: {}
+    steps:
+      - name: check status
+        env:
+          BUILD_STATUS: ${{ github.event.build.status }}
+          BUILD_ERROR_MESSAGE: ${{ github.event.build.error.message }}
+        run: |
+          import os
+          status = os.environ['BUILD_STATUS']
+          errormsg = os.environ['BUILD_ERROR_MESSAGE']
+          assert status == 'built', 'Status: {status}\nError: {errormsg}'.format(status=status, errormsg=errormsg)
+        shell: python

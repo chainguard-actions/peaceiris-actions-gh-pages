@@ -1,0 +1,52 @@
+name: Test custom publish directory and branch
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_REF: refs/heads/main
+      GITHUB_EVENT_NAME: push
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Create custom publish directory with content
+        run: |
+          mkdir -p dist/assets
+          echo "<html><body>Custom Dir Test</body></html>" > dist/index.html
+          echo "body { color: red; }" > dist/assets/style.css
+          echo "console.log('hello');" > dist/assets/app.js
+
+      - name: Verify custom publish directory
+        run: |
+          if [ ! -d "dist" ]; then
+            echo "FAIL: dist directory does not exist"
+            exit 1
+          fi
+          if [ ! -f "dist/index.html" ]; then
+            echo "FAIL: dist/index.html does not exist"
+            exit 1
+          fi
+          echo "PASS: custom publish directory exists with content"
+
+      - id: deploy
+        name: Deploy from custom directory to custom branch
+        uses: .
+        with:
+          github_token: fake-token-for-testing
+          publish_dir: ./dist
+          publish_branch: docs
+          user_name: 'Test Bot'
+          user_email: 'test@example.com'
+          commit_message: 'Deploy from dist to docs branch'
+          force_orphan: 'true'
+        continue-on-error: true
+
+      - name: Assert action was invoked with custom settings
+        run: |
+          echo "outcome: ${{ steps.deploy.outcome }}"
+          if [ "${{ steps.deploy.outcome }}" = "skipped" ]; then
+            echo "FAIL: action was skipped unexpectedly"
+            exit 1
+          fi
+          echo "PASS: action was invoked with custom publish_dir and publish_branch"

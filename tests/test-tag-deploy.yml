@@ -1,0 +1,54 @@
+name: Test tag_name and tag_message inputs
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Create publish directory with content
+        run: |
+          mkdir -p public
+          echo "<html><body>Tag Deploy Test</body></html>" > public/index.html
+
+      - name: Install fake git to mock push and tag operations
+        run: |
+          mkdir -p /tmp/fake-bin
+          cat > /tmp/fake-bin/git << 'EOF'
+          #!/bin/sh
+          case "$1" in
+            push)
+              echo "[FAKE GIT] git push intercepted: $*"
+              exit 0
+              ;;
+            tag)
+              echo "[FAKE GIT] git tag intercepted: $*"
+              exit 0
+              ;;
+            *)
+              exec /usr/bin/git "$@"
+              ;;
+          esac
+          EOF
+          chmod +x /tmp/fake-bin/git
+          echo "/tmp/fake-bin" >> $GITHUB_PATH
+
+      - id: deploy
+        name: Deploy with tag_name and tag_message inputs
+        uses: .
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: public
+          publish_branch: gh-pages-test-tag
+          force_orphan: 'true'
+          user_name: 'github-actions[bot]'
+          user_email: 'github-actions[bot]@users.noreply.github.com'
+          commit_message: 'Test deploy with tag inputs'
+          tag_name: 'v1.0.0-test'
+          tag_message: 'Test release tag message'
+
+      - name: Assert deploy with tag inputs succeeded
+        run: |
+          echo "Deploy with tag_name and tag_message completed successfully"
+          echo "PASS"
