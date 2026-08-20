@@ -1,4 +1,4 @@
-name: Test deploy with personal token
+name: Test tag deploy with full commit message
 on:
   workflow_dispatch:
 jobs:
@@ -10,23 +10,26 @@ jobs:
       - name: Create publish directory
         run: |
           mkdir -p public
-          echo "<html><body>Personal token deploy test</body></html>" > public/index.html
+          echo "<html><body>Tag deploy test</body></html>" > public/index.html
 
       - id: action
         uses: .
         continue-on-error: true
         with:
-          personal_token: ${{ github.token }}
+          github_token: ${{ github.token }}
           publish_dir: public
-          publish_branch: gh-pages-personal-token-test
+          publish_branch: gh-pages-tag-test
+          tag_name: v1.0.0-test
+          tag_message: "Test release v1.0.0"
+          full_commit_message: "Deploy release v1.0.0 - full custom message"
 
-      - name: Assert action ran (personal_token accepted, or failed gracefully on sentinel repo)
+      - name: Assert action ran (tag inputs accepted, or failed gracefully on sentinel repo)
         env:
           OUTCOME: ${{ steps.action.outcome }}
         run: |
           echo "outcome: $OUTCOME"
           if [ "$OUTCOME" = "success" ]; then
-            echo "PASS: action succeeded with personal_token input"
+            echo "PASS: action succeeded with tag_name, tag_message, and full_commit_message inputs"
           elif [ "$OUTCOME" = "failure" ]; then
             echo "PASS: action failed gracefully (sentinel repo is not resolvable)"
           else

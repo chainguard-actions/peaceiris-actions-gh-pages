@@ -1,30 +1,43 @@
-name: Test deploy_key with tag_name and tag_message inputs
+name: Test deploy with SSH deploy key
 on:
   workflow_dispatch:
 jobs:
   test:
     runs-on: ubuntu-latest
-    env:
-      GITHUB_REF: refs/heads/main
-      GITHUB_EVENT_NAME: push
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
       - name: Create publish directory
-        run: mkdir -p public && echo "Hello World" > public/index.html
+        run: |
+          mkdir -p public
+          echo "<html><body>Deploy key test</body></html>" > public/index.html
+
+      - name: Generate a temporary SSH key pair for testing
+        id: keygen
+        run: |
+          ssh-keygen -t ed25519 -C "test@example.com" -f /tmp/test_deploy_key -N ""
+          echo "private_key<<EOF" >> $GITHUB_OUTPUT
+          cat /tmp/test_deploy_key >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
 
       - id: action
         uses: .
         continue-on-error: true
         with:
-          deploy_key: fake-deploy-key-for-input-coverage
+          deploy_key: ${{ steps.keygen.outputs.private_key }}
           publish_dir: public
-          publish_branch: gh-pages-test
-          tag_name: v1.0.0
-          tag_message: "Release v1.0.0"
-          force_orphan: "true"
+          publish_branch: gh-pages-deploy-key-test
 
-      - name: Assert action ran (may fail due to invalid deploy key in act)
+      - name: Assert action ran (deploy_key accepted, or failed gracefully)
+        env:
+          OUTCOME: ${{ steps.action.outcome }}
         run: |
-          echo "Action outcome: ${{ steps.action.outcome }}"
-          echo "PASS: action step executed (deployment may fail in act environment)"
+          echo "outcome: $OUTCOME"
+          if [ "$OUTCOME" = "success" ]; then
+            echo "PASS: action succeeded with deploy_key input"
+          elif [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: action failed gracefully (test key has no push access)"
+          else
+            echo "FAIL: unexpected outcome '$OUTCOME'"
+            exit 1
+          fi

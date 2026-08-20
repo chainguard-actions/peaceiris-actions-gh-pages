@@ -2,8 +2,10 @@
   "owner": "peaceiris",
   "repo": "actions-gh-pages",
   "version": "v4.0.0",
+  "commit_sha": "4f9cc6602d3f66b9c108549d475ec49e8ef4d45e",
   "url": "https://github.com/peaceiris/actions-gh-pages",
   "policy_sha": "d636be7e43ef829af6e853da6b3c7566db9f72fe",
   "test_policy_sha": "843adf9e4b8f85d0c08b27b9d0b09dd094b54702",
-  "harden_agent_version": "1"
+  "test_agent_version": "2",
+  "harden_agent_version": "2"
 }

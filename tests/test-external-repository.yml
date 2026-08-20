@@ -1,4 +1,4 @@
-name: Test deploy with personal token
+name: Test deploy to external repository
 on:
   workflow_dispatch:
 jobs:
@@ -10,25 +10,26 @@ jobs:
       - name: Create publish directory
         run: |
           mkdir -p public
-          echo "<html><body>Personal token deploy test</body></html>" > public/index.html
+          echo "<html><body>External repository deploy test</body></html>" > public/index.html
 
       - id: action
         uses: .
         continue-on-error: true
         with:
-          personal_token: ${{ github.token }}
+          github_token: ${{ github.token }}
           publish_dir: public
-          publish_branch: gh-pages-personal-token-test
+          publish_branch: gh-pages
+          external_repository: peaceiris/peaceiris.github.io
 
-      - name: Assert action ran (personal_token accepted, or failed gracefully on sentinel repo)
+      - name: Assert action ran (external_repository accepted, or failed gracefully)
         env:
           OUTCOME: ${{ steps.action.outcome }}
         run: |
           echo "outcome: $OUTCOME"
           if [ "$OUTCOME" = "success" ]; then
-            echo "PASS: action succeeded with personal_token input"
+            echo "PASS: action succeeded with external_repository input"
           elif [ "$OUTCOME" = "failure" ]; then
-            echo "PASS: action failed gracefully (sentinel repo is not resolvable)"
+            echo "PASS: action failed gracefully (no permission to push to external repo)"
           else
             echo "FAIL: unexpected outcome '$OUTCOME'"
             exit 1

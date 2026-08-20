@@ -1,0 +1,22 @@
+name: "Pull Request Labeler"
+
+on:
+  pull_request_target:
+
+jobs:
+  triage:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 1
+    permissions: {}
+    steps:
+      # https://github.com/peaceiris/actions-github-app-token
+      - uses: peaceiris/actions-github-app-token@652b86006ad2c113bdd5c478c9a98f359829847b # v1.1.6
+        id: app
+        with:
+          app_id: ${{ secrets.GH_APP_ID }}
+          private_key: ${{ secrets.GH_APP_PRIVATE_KEY }}
+
+      # https://github.com/actions/labeler
+      - uses: actions/labeler@ac9175f8a1f3625fd0d4fb234536d26811351594 # v4
+        with:
+          repo-token: "${{ steps.app.outputs.token }}"

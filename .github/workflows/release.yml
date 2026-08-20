@@ -1,0 +1,19 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v3.*.*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      # https://github.com/peaceiris/workflows/blob/main/create-release-npm/action.yml
+      - uses: peaceiris/workflows/create-release-npm@c5cb4219b96278d56b5fa756f1bef67acdb5b3ba # v0.19.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

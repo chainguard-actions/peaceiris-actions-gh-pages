@@ -1,0 +1,27 @@
+name: Label Commenter
+
+on:
+  issues:
+    types:
+      - labeled
+      - unlabeled
+  pull_request_target:
+    types:
+      - labeled
+      - unlabeled
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
+jobs:
+  comment:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Label Commenter
+        uses: peaceiris/actions-label-commenter@f0dbbef043eb1b150b566db36b0bdc8b7f505579 # v1
+        env:
+          RUNNER_DEBUG: 1
